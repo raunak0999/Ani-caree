@@ -34,13 +34,13 @@ export default function Navigation() {
                 </button>
                 <button 
                   onClick={() => scrollToSection('profile')}
-                  className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors cursor-pointer"
                 >
                   Pet Profile
                 </button>
                 <button 
                   onClick={() => scrollToSection('care-tips')}
-                  className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors"
+                  className="text-gray-600 hover:text-primary px-3 py-2 text-sm font-medium transition-colors cursor-pointer"
                 >
                   Care Tips
                 </button>
@@ -100,13 +100,13 @@ export default function Navigation() {
             </button>
             <button 
               onClick={() => scrollToSection('profile')}
-              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 w-full text-left"
+              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 w-full text-left cursor-pointer"
             >
               Pet Profile
             </button>
             <button 
               onClick={() => scrollToSection('care-tips')}
-              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 w-full text-left"
+              className="block px-3 py-2 text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 w-full text-left cursor-pointer"
             >
               Care Tips
             </button>

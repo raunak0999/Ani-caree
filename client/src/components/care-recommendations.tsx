@@ -14,6 +14,8 @@ export default function CareRecommendations() {
   const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
     queryKey: ['/api/care-recommendations', latestProfile?.id],
     enabled: !!latestProfile?.id,
+    refetchOnMount: true,
+    staleTime: 0,
   });
 
   const isLoading = profilesLoading || recommendationsLoading;
