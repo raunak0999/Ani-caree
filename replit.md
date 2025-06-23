@@ -86,8 +86,11 @@ The application is configured for deployment on Replit with:
 - **Push Command**: `npm run db:push` for direct schema synchronization
 
 ## Changelog
-- June 23, 2025. Initial setup
+- June 23, 2025: Initial setup with complete AniCare platform
+- June 23, 2025: Fixed UI issues - cart functionality, button styling, currency to INR
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Preferred currency: Indian Rupees (₹)
+UI preferences: All buttons should work properly, consistent styling without fading effects

@@ -65,7 +65,7 @@ export class MemStorage implements IStorage {
       {
         name: "Premium Golden Retriever Food",
         description: "High-protein formula for adult dogs",
-        price: 49.99,
+        price: 3999,
         category: "Food & Treats",
         imageUrl: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isRecommended: true,
@@ -74,7 +74,7 @@ export class MemStorage implements IStorage {
       {
         name: "Interactive Rope Toy",
         description: "Durable toy for medium to large dogs",
-        price: 19.99,
+        price: 1599,
         category: "Toys & Accessories",
         imageUrl: "https://images.unsplash.com/photo-1605460375648-278bcbd579a6?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isBestseller: true,
@@ -83,7 +83,7 @@ export class MemStorage implements IStorage {
       {
         name: "Professional Grooming Kit",
         description: "Complete set for double-coat breeds",
-        price: 34.99,
+        price: 2799,
         category: "Grooming",
         imageUrl: "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isRecommended: true,
@@ -92,7 +92,7 @@ export class MemStorage implements IStorage {
       {
         name: "Joint Health Supplements",
         description: "Natural support for active dogs",
-        price: 29.99,
+        price: 2399,
         category: "Health & Medicine",
         imageUrl: "https://images.unsplash.com/photo-1614027164847-1b28cfe1df60?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isVetApproved: true,
@@ -101,7 +101,7 @@ export class MemStorage implements IStorage {
       {
         name: "Organic Dog Treats",
         description: "All-natural training rewards",
-        price: 15.99,
+        price: 1279,
         category: "Food & Treats",
         imageUrl: "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isRecommended: true,
@@ -110,7 +110,7 @@ export class MemStorage implements IStorage {
       {
         name: "Smart Water Bowl",
         description: "Automatic refilling with app control",
-        price: 89.99,
+        price: 7199,
         category: "Toys & Accessories",
         imageUrl: "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=300",
         isBestseller: true,

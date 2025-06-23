@@ -66,7 +66,13 @@ export default function Navigation() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Button className="bg-primary text-white hover:bg-orange-600 transition-colors">
+            <Button 
+              onClick={() => {
+                const cartSummary = `Cart Items: ${totalItems}\nTotal Price: ₹${Math.round(useCart.getState().getTotalPrice())}\n\nThis is a demo cart. In a real application, this would redirect to checkout.`;
+                alert(cartSummary);
+              }}
+              className="bg-primary text-white hover:bg-orange-600 transition-colors"
+            >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Cart ({totalItems})
             </Button>

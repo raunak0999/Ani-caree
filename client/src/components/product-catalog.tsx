@@ -128,7 +128,7 @@ export default function ProductCatalog() {
                 <h3 className="font-bold text-lg mb-2">{product.name}</h3>
                 <p className="text-gray-600 text-sm mb-4">{product.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-primary">${product.price}</span>
+                  <span className="text-2xl font-bold text-primary">₹{product.price}</span>
                   <Button 
                     onClick={() => handleAddToCart(product)}
                     className="bg-primary text-white hover:bg-orange-600 transition-colors"
