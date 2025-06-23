@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Filter, ShoppingCart, Plus, Check } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
@@ -15,30 +21,42 @@ export default function ProductCatalog() {
   const { addItem } = useCart();
   const { toast } = useToast();
 
+  const baseUrl = import.meta.env.VITE_API_URL;
+
   const { data: products, isLoading } = useQuery({
-    queryKey: ['/api/products', selectedCategory === "all" ? undefined : selectedCategory],
+    queryKey: ["/api/products", selectedCategory],
+    queryFn: async () => {
+      const url =
+        selectedCategory === "all"
+          ? `${baseUrl}/api/products`
+          : `${baseUrl}/api/products?category=${encodeURIComponent(
+              selectedCategory
+            )}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      return res.json();
+    },
   });
 
   const categories = [
-    "All Categories",
-    "Food & Treats", 
+    "all",
+    "Food & Treats",
     "Toys & Accessories",
     "Health & Medicine",
-    "Grooming"
+    "Grooming",
   ];
 
   const handleAddToCart = (product: Product) => {
     addItem(product);
-    setAddedProducts(prev => new Set([...prev, product.id]));
-    
+    setAddedProducts((prev) => new Set([...prev, product.id]));
+
     toast({
       title: "Added to Cart!",
       description: `${product.name} has been added to your cart.`,
     });
 
-    // Reset the "added" state after 2 seconds
     setTimeout(() => {
-      setAddedProducts(prev => {
+      setAddedProducts((prev) => {
         const newSet = new Set(prev);
         newSet.delete(product.id);
         return newSet;
@@ -61,7 +79,10 @@ export default function ProductCatalog() {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}>
+      <span
+        key={i}
+        className={i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}
+      >
         ★
       </span>
     ));
@@ -72,7 +93,9 @@ export default function ProductCatalog() {
       <section id="products" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recommended Products</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Recommended Products
+            </h2>
             <p className="text-xl text-gray-600">Loading products...</p>
           </div>
         </div>
@@ -85,16 +108,20 @@ export default function ProductCatalog() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-4">
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recommended Products</h2>
-            <p className="text-xl text-gray-600">Curated for your pet's specific needs</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Recommended Products
+            </h2>
+            <p className="text-xl text-gray-600">
+              Curated for your pet&apos;s specific needs
+            </p>
           </div>
           <div className="flex gap-4">
-            <Select 
-              value={selectedCategory} 
-              onValueChange={(value) => setSelectedCategory(value === "All Categories" ? "all" : value)}
+            <Select
+              value={selectedCategory}
+              onValueChange={(value) => setSelectedCategory(value)}
             >
               <SelectTrigger className="w-48">
-                <SelectValue />
+                <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -109,14 +136,14 @@ export default function ProductCatalog() {
             </Button>
           </div>
         </div>
-        
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {products?.map((product: Product) => (
             <Card key={product.id} className="bg-gray-50 overflow-hidden card-hover">
-              <img 
-                src={product.imageUrl} 
+              <img
+                src={product.imageUrl}
                 alt={product.name}
-                className="w-full h-48 object-cover" 
+                className="w-full h-48 object-cover"
               />
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -126,10 +153,14 @@ export default function ProductCatalog() {
                   </div>
                 </div>
                 <h3 className="font-bold text-lg mb-2">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">{product.description}</p>
+                <p className="text-gray-600 text-sm mb-4">
+                  {product.description}
+                </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-primary">₹{product.price}</span>
-                  <Button 
+                  <span className="text-2xl font-bold text-primary">
+                    ₹{product.price}
+                  </span>
+                  <Button
                     onClick={() => handleAddToCart(product)}
                     className="bg-primary text-white hover:bg-orange-600 transition-colors"
                     disabled={addedProducts.has(product.id)}
@@ -145,7 +176,7 @@ export default function ProductCatalog() {
             </Card>
           ))}
         </div>
-        
+
         <div className="text-center mt-12">
           <Button className="bg-secondary text-white px-8 py-4 rounded-lg hover:bg-blue-600 transition-colors">
             View All Products
