@@ -50,7 +50,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]);
       } catch (aiError) {
         console.error("AI recommendation generation failed:", aiError);
-        // Continue without failing the profile creation
+        // Create fallback recommendations manually
+        await Promise.all([
+          storage.createCareRecommendation({
+            petProfileId: petProfile.id,
+            category: "nutrition",
+            title: `Nutrition Guide for ${petProfile.name}`,
+            description: `Feeding recommendations for your ${petProfile.age.toLowerCase()} ${petProfile.breed}`,
+            tips: [
+              "Feed high-quality pet food appropriate for age and size",
+              "Maintain regular feeding schedule twice daily",
+              "Provide fresh water at all times",
+              "Avoid foods toxic to pets like chocolate and grapes"
+            ]
+          }),
+          storage.createCareRecommendation({
+            petProfileId: petProfile.id,
+            category: "grooming",
+            title: `Grooming Schedule for ${petProfile.name}`,
+            description: `Regular grooming routine for your ${petProfile.breed}`,
+            tips: [
+              "Brush regularly to prevent matting and reduce shedding",
+              "Bathe every 4-6 weeks or when dirty",
+              "Trim nails every 2-3 weeks",
+              "Clean ears weekly to prevent infections"
+            ]
+          }),
+          storage.createCareRecommendation({
+            petProfileId: petProfile.id,
+            category: "health",
+            title: `Health Monitoring for ${petProfile.name}`,
+            description: `Health care for your ${petProfile.age.toLowerCase()} ${petProfile.breed}`,
+            tips: [
+              "Schedule regular veterinary checkups",
+              "Keep up with vaccinations and preventive care",
+              "Monitor for breed-specific health concerns",
+              "Provide daily exercise appropriate for age and breed"
+            ]
+          })
+        ]);
       }
 
       res.json(petProfile);
