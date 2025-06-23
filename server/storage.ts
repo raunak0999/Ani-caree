@@ -15,6 +15,8 @@ import {
   type ChatMessage,
   type InsertChatMessage
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Pet Profiles
@@ -40,27 +42,18 @@ export interface IStorage {
   getChatMessagesBySession(sessionId: string): Promise<ChatMessage[]>;
 }
 
-export class MemStorage implements IStorage {
-  private petProfiles: Map<number, PetProfile>;
-  private products: Map<number, Product>;
-  private careRecommendations: Map<number, CareRecommendation>;
-  private trainingPrograms: Map<number, TrainingProgram>;
-  private chatMessages: Map<number, ChatMessage>;
-  private currentId: number;
-
+export class DatabaseStorage implements IStorage {
   constructor() {
-    this.petProfiles = new Map();
-    this.products = new Map();
-    this.careRecommendations = new Map();
-    this.trainingPrograms = new Map();
-    this.chatMessages = new Map();
-    this.currentId = 1;
-    
-    this.initializeProducts();
-    this.initializeTrainingPrograms();
+    // Initialize sample data in database
+    this.initializeData();
   }
 
-  private initializeProducts() {
+  private async initializeData() {
+    await this.initializeProducts();
+    await this.initializeTrainingPrograms();
+  }
+
+  private async initializeProducts() {
     const productData: InsertProduct[] = [
       {
         name: "Premium Golden Retriever Food",
@@ -118,20 +111,18 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    productData.forEach(product => {
-      const id = this.currentId++;
-      this.products.set(id, { 
-        ...product, 
-        id,
-        isRecommended: product.isRecommended || false,
-        isBestseller: product.isBestseller || false,
-        isVetApproved: product.isVetApproved || false,
-        rating: product.rating || 5.0
-      });
-    });
+    try {
+      // Check if products already exist
+      const existingProducts = await db.select().from(products).limit(1);
+      if (existingProducts.length === 0) {
+        await db.insert(products).values(productData);
+      }
+    } catch (error) {
+      console.log("Products already initialized or error occurred:", error);
+    }
   }
 
-  private initializeTrainingPrograms() {
+  private async initializeTrainingPrograms() {
     const trainingData: InsertTrainingProgram[] = [
       {
         title: "Basic Obedience",
@@ -171,95 +162,80 @@ export class MemStorage implements IStorage {
       }
     ];
 
-    trainingData.forEach(program => {
-      const id = this.currentId++;
-      this.trainingPrograms.set(id, { 
-        ...program, 
-        id,
-        breedSuitability: program.breedSuitability || null
-      });
-    });
+    try {
+      // Check if training programs already exist
+      const existingPrograms = await db.select().from(trainingPrograms).limit(1);
+      if (existingPrograms.length === 0) {
+        await db.insert(trainingPrograms).values(trainingData);
+      }
+    } catch (error) {
+      console.log("Training programs already initialized or error occurred:", error);
+    }
   }
 
   async createPetProfile(profile: InsertPetProfile): Promise<PetProfile> {
-    const id = this.currentId++;
-    const petProfile: PetProfile = { 
-      ...profile, 
-      id,
-      size: profile.size || null,
-      createdAt: new Date()
-    };
-    this.petProfiles.set(id, petProfile);
+    const [petProfile] = await db
+      .insert(petProfiles)
+      .values(profile)
+      .returning();
     return petProfile;
   }
 
   async getPetProfile(id: number): Promise<PetProfile | undefined> {
-    return this.petProfiles.get(id);
+    const [petProfile] = await db.select().from(petProfiles).where(eq(petProfiles.id, id));
+    return petProfile || undefined;
   }
 
   async getAllPetProfiles(): Promise<PetProfile[]> {
-    return Array.from(this.petProfiles.values());
+    return await db.select().from(petProfiles);
   }
 
   async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
+    return await db.select().from(products);
   }
 
   async getProductsByCategory(category: string): Promise<Product[]> {
-    return Array.from(this.products.values()).filter(
-      product => product.category === category
-    );
+    return await db.select().from(products).where(eq(products.category, category));
   }
 
   async getRecommendedProducts(): Promise<Product[]> {
-    return Array.from(this.products.values()).filter(
-      product => product.isRecommended
-    );
+    return await db.select().from(products).where(eq(products.isRecommended, true));
   }
 
   async createCareRecommendation(recommendation: InsertCareRecommendation): Promise<CareRecommendation> {
-    const id = this.currentId++;
-    const careRecommendation: CareRecommendation = { 
-      ...recommendation, 
-      id,
-      createdAt: new Date()
-    };
-    this.careRecommendations.set(id, careRecommendation);
+    const [careRecommendation] = await db
+      .insert(careRecommendations)
+      .values(recommendation)
+      .returning();
     return careRecommendation;
   }
 
   async getCareRecommendationsByPetId(petId: number): Promise<CareRecommendation[]> {
-    return Array.from(this.careRecommendations.values()).filter(
-      rec => rec.petProfileId === petId
-    );
+    return await db.select().from(careRecommendations).where(eq(careRecommendations.petProfileId, petId));
   }
 
   async getAllTrainingPrograms(): Promise<TrainingProgram[]> {
-    return Array.from(this.trainingPrograms.values());
+    return await db.select().from(trainingPrograms);
   }
 
   async getTrainingProgramsByAge(ageGroup: string): Promise<TrainingProgram[]> {
-    return Array.from(this.trainingPrograms.values()).filter(
-      program => program.ageGroup === ageGroup || program.ageGroup === "All Ages"
+    const programs = await db.select().from(trainingPrograms);
+    return programs.filter(program => 
+      program.ageGroup === ageGroup || program.ageGroup === "All Ages"
     );
   }
 
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {
-    const id = this.currentId++;
-    const chatMessage: ChatMessage = { 
-      ...message, 
-      id,
-      timestamp: new Date()
-    };
-    this.chatMessages.set(id, chatMessage);
+    const [chatMessage] = await db
+      .insert(chatMessages)
+      .values(message)
+      .returning();
     return chatMessage;
   }
 
   async getChatMessagesBySession(sessionId: string): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values()).filter(
-      msg => msg.sessionId === sessionId
-    );
+    return await db.select().from(chatMessages).where(eq(chatMessages.sessionId, sessionId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

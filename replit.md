@@ -88,6 +88,7 @@ The application is configured for deployment on Replit with:
 ## Changelog
 - June 23, 2025: Initial setup with complete AniCare platform
 - June 23, 2025: Fixed UI issues - cart functionality, button styling, currency to INR
+- June 23, 2025: Migrated from in-memory storage to PostgreSQL database with persistent data
 
 ## User Preferences
 
