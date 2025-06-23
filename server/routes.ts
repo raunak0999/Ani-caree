@@ -4,11 +4,11 @@ import { storage } from "./storage";
 import {
   insertPetProfileSchema,
   insertChatMessageSchema,
-  type PetProfile
+  type PetProfile,
 } from "@shared/schema";
 import {
   generateCareRecommendations,
-  generateChatResponse
+  generateChatResponse,
 } from "./services/openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -28,195 +28,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
 
         // Store recommendations
-        await Promise.all([
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "nutrition",
-            title: recommendations.nutrition.title,
-            description: recommendations.nutrition.description,
-            tips: recommendations.nutrition.tips
-          }),
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "grooming",
-            title: recommendations.grooming.title,
-            description: recommendations.grooming.description,
-            tips: recommendations.grooming.tips
-          }),
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "health",
-            title: recommendations.health.title,
-            description: recommendations.health.description,
-            tips: recommendations.health.tips
-          })
-        ]);
-      } catch (aiError) {
-        console.error("AI recommendation generation failed:", aiError);
-        // Fallback static recommendations
-        await Promise.all([
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "nutrition",
-            title: `Nutrition Guide for ${petProfile.name}`,
-            description: `Feeding recommendations for your ${petProfile.age.toLowerCase()} ${petProfile.breed}`,
-            tips: [
-              "Feed high-quality pet food appropriate for age and size",
-              "Maintain regular feeding schedule twice daily",
-              "Provide fresh water at all times",
-              "Avoid foods toxic to pets like chocolate and grapes"
-            ]
-          }),
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "grooming",
-            title: `Grooming Schedule for ${petProfile.name}`,
-            description: `Regular grooming routine for your ${petProfile.breed}`,
-            tips: [
-              "Brush regularly to prevent matting and reduce shedding",
-              "Bathe every 4–6 weeks or when dirty",
-              "Trim nails every 2–3 weeks",
-              "Clean ears weekly to prevent infections"
-            ]
-          }),
-          storage.createCareRecommendation({
-            petProfileId: petProfile.id,
-            category: "health",
-            title: `Health Monitoring for ${petProfile.name}`,
-            description: `Health care for your ${petProfile.age.toLowerCase()} ${petProfile.breed}`,
-            tips: [
-              "Schedule regular veterinary checkups",
-              "Keep up with vaccinations and preventive care",
-              "Monitor for breed-specific health concerns",
-              "Provide daily exercise appropriate for age and breed"
-            ]
-          })
-        ]);
+        await storage.saveRecommendations(petProfile.id, recommendations);
+
+        return res.json({
+          profile: petProfile,
+          recommendations,
+        });
+      } catch (err) {
+        console.error("Recommendation error:", err);
+        return res.status(500).json({ message: "Failed to generate recommendations" });
       }
-
-      res.json(petProfile);
-    } catch (error) {
-      res.status(400).json({ message: "Invalid pet profile data" });
+    } catch (err) {
+      console.error("Profile creation error:", err);
+      return res.status(400).json({ message: "Invalid pet profile data" });
     }
   });
 
-  app.get("/api/pet-profiles", async (req, res) => {
-    try {
-      const profiles = await storage.getAllPetProfiles();
-      res.json(profiles);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pet profiles" });
-    }
-  });
-
-  app.get("/api/pet-profiles/:id", async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const profile = await storage.getPetProfile(id);
-      if (!profile) {
-        return res.status(404).json({ message: "Pet profile not found" });
-      }
-      res.json(profile);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch pet profile" });
-    }
-  });
-
-  // Care Recommendations
-  app.get("/api/care-recommendations/:petId", async (req, res) => {
-    try {
-      const petId = parseInt(req.params.petId);
-      const recommendations = await storage.getCareRecommendationsByPetId(petId);
-      res.json(recommendations);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch care recommendations" });
-    }
-  });
-
-  // ✅ Product Routes (only one valid definition)
-  app.get("/api/products", async (req, res) => {
-    try {
-      const { category } = req.query;
-      let products;
-
-      if (category && typeof category === 'string') {
-        products = await storage.getProductsByCategory(category);
-      } else {
-        products = await storage.getAllProducts();
-      }
-
-      res.json(products);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products" });
-    }
-  });
-
-  app.get("/api/products/recommended", async (req, res) => {
-    try {
-      const products = await storage.getRecommendedProducts();
-      res.json(products);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch recommended products" });
-    }
-  });
-
-  // Training Programs
-  app.get("/api/training-programs", async (req, res) => {
-    try {
-      const { age } = req.query;
-      let programs;
-
-      if (age && typeof age === 'string') {
-        programs = await storage.getTrainingProgramsByAge(age);
-      } else {
-        programs = await storage.getAllTrainingPrograms();
-      }
-
-      res.json(programs);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch training programs" });
-    }
-  });
-
-  // Chat
+  // Chat Message Routes
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, sessionId } = req.body;
-
-      if (!message || !sessionId) {
-        return res.status(400).json({ message: "Message and sessionId are required" });
-      }
-
-      const profiles = await storage.getAllPetProfiles();
-      const petContext = profiles.length > 0
-        ? `User has pet(s): ${profiles.map(p => `${p.name} (${p.breed}, ${p.age})`).join(', ')}`
-        : undefined;
-
-      const aiResponse = await generateChatResponse(message, petContext);
-
-      const chatMessage = await storage.createChatMessage({
-        sessionId,
-        message,
-        response: aiResponse
-      });
-
-      res.json({ response: aiResponse, messageId: chatMessage.id });
-    } catch (error) {
-      console.error("Chat error:", error);
-      res.status(500).json({ message: "Failed to process chat message" });
+      const validatedData = insertChatMessageSchema.parse(req.body);
+      const reply = await generateChatResponse(validatedData.message);
+      return res.json({ reply });
+    } catch (err) {
+      console.error("Chat error:", err);
+      return res.status(400).json({ message: "Invalid chat message" });
     }
   });
 
-  app.get("/api/chat/:sessionId", async (req, res) => {
-    try {
-      const { sessionId } = req.params;
-      const messages = await storage.getChatMessagesBySession(sessionId);
-      res.json(messages);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch chat history" });
+  // ✅ Product Routes
+  app.get("/api/products", (req, res) => {
+    const sampleProducts = [
+      {
+        id: 1,
+        name: "Chicken Biscuits",
+        description: "Delicious chicken-flavored treats.",
+        price: 299,
+        imageUrl: "https://via.placeholder.com/300x200",
+        rating: 4.5,
+        isRecommended: true,
+        isBestseller: false,
+        isVetApproved: true,
+        category: "Food & Treats",
+      },
+      {
+        id: 2,
+        name: "Squeaky Toy Bone",
+        description: "Fun squeaky toy for your pup.",
+        price: 199,
+        imageUrl: "https://via.placeholder.com/300x200",
+        rating: 4.0,
+        isRecommended: false,
+        isBestseller: true,
+        isVetApproved: false,
+        category: "Toys & Accessories",
+      },
+    ];
+
+    const { category } = req.query;
+
+    if (category && category !== "all") {
+      const filtered = sampleProducts.filter(
+        (product) => product.category === category
+      );
+      return res.json(filtered);
     }
+
+    return res.json(sampleProducts);
   });
 
-  const httpServer = createServer(app);
-  return httpServer;
+  return createServer(app);
 }
