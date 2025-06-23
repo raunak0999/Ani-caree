@@ -59,30 +59,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Product Routes
   app.get("/api/products", (req, res) => {
     const sampleProducts = [
-      {
-        id: 1,
-        name: "Chicken Biscuits",
-        description: "Delicious chicken-flavored treats.",
-        price: 299,
-        imageUrl: "https://via.placeholder.com/300x200",
-        rating: 4.5,
-        isRecommended: true,
-        isBestseller: false,
-        isVetApproved: true,
-        category: "Food & Treats",
-      },
-      {
-        id: 2,
-        name: "Squeaky Toy Bone",
-        description: "Fun squeaky toy for your pup.",
-        price: 199,
-        imageUrl: "https://via.placeholder.com/300x200",
-        rating: 4.0,
-        isRecommended: false,
-        isBestseller: true,
-        isVetApproved: false,
-        category: "Toys & Accessories",
-      },
+     
+  {
+    id: 1,
+    name: "Chicken Biscuits",
+    description: "Delicious chicken-flavored treats.",
+    price: 299,
+    imageUrl: "https://images.unsplash.com/photo-1621873493361-193c2ccf2c52?auto=format&fit=crop&w=600&q=80",
+    rating: 4.5,
+    isRecommended: true,
+    isBestseller: false,
+    isVetApproved: true,
+    category: "Food & Treats"
+  },
+  {
+    id: 2,
+    name: "Squeaky Toy Bone",
+    description: "Fun squeaky toy for your pup.",
+    price: 199,
+    imageUrl: "https://images.unsplash.com/photo-1619983081563-430f63602799?auto=format&fit=crop&w=600&q=80",
+    rating: 4,
+    isRecommended: false,
+    isBestseller: true,
+    isVetApproved: false,
+    category: "Toys & Accessories"
+  }
+
+
     ];
 
     const { category } = req.query;
