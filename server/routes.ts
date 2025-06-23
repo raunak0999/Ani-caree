@@ -27,7 +27,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           petProfile.size || undefined
         );
 
-        // Store recommendations
         await storage.saveRecommendations(petProfile.id, recommendations);
 
         return res.json({
@@ -36,7 +35,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } catch (err) {
         console.error("Recommendation error:", err);
-        return res.status(500).json({ message: "Failed to generate recommendations" });
+        return res
+          .status(500)
+          .json({ message: "Failed to generate recommendations" });
       }
     } catch (err) {
       console.error("Profile creation error:", err);
@@ -59,62 +60,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ✅ Product Routes
   app.get("/api/products", (req, res) => {
     const sampleProducts = [
-     
-
-  {
-    "id": 1,
-    "name": "Chicken Biscuits",
-    "description": "Delicious chicken-flavored treats.",
-    "price": 299,
-    "imageUrl": "https://picsum.photos/seed/biscuits/300/200",
-    "rating": 4.5,
-    "isRecommended": true,
-    "isBestseller": false,
-    "isVetApproved": true,
-    "category": "Food & Treats"
-  },
-  {
-    "id": 2,
-    "name": "Squeaky Toy Bone",
-    "description": "Fun squeaky toy for your pup.",
-    "price": 199,
-    "imageUrl": "https://picsum.photos/seed/toybone/300/200",
-    "rating": 4,
-    "isRecommended": false,
-    "isBestseller": true,
-    "isVetApproved": false,
-    "category": "Toys & Accessories"
-  }
-]
-[
-  {
-    "id": 1,
-    "name": "Chicken Biscuits",
-    "description": "Delicious chicken-flavored treats.",
-    "price": 299,
-    "imageUrl": "https://picsum.photos/seed/biscuits/300/200",
-    "rating": 4.5,
-    "isRecommended": true,
-    "isBestseller": false,
-    "isVetApproved": true,
-    "category": "Food & Treats"
-  },
-  {
-    "id": 2,
-    "name": "Squeaky Toy Bone",
-    "description": "Fun squeaky toy for your pup.",
-    "price": 199,
-    "imageUrl": "https://picsum.photos/seed/toybone/300/200",
-    "rating": 4,
-    "isRecommended": false,
-    "isBestseller": true,
-    "isVetApproved": false,
-    "category": "Toys & Accessories"
-  }
-
-
-
-
+      {
+        id: 1,
+        name: "Chicken Biscuits",
+        description: "Delicious chicken-flavored treats.",
+        price: 299,
+        imageUrl: "https://picsum.photos/seed/biscuits/300/200",
+        rating: 4.5,
+        isRecommended: true,
+        isBestseller: false,
+        isVetApproved: true,
+        category: "Food & Treats",
+      },
+      {
+        id: 2,
+        name: "Squeaky Toy Bone",
+        description: "Fun squeaky toy for your pup.",
+        price: 199,
+        imageUrl: "https://picsum.photos/seed/toybone/300/200",
+        rating: 4,
+        isRecommended: false,
+        isBestseller: true,
+        isVetApproved: false,
+        category: "Toys & Accessories",
+      },
     ];
 
     const { category } = req.query;
