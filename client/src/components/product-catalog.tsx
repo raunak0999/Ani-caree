@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Filter, ShoppingCart, Plus, Check } from "lucide-react";
+import { Filter, Plus, Check } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useToast } from "@/hooks/use-toast";
 import type { Product } from "@shared/schema";
@@ -21,17 +21,16 @@ export default function ProductCatalog() {
   const { addItem } = useCart();
   const { toast } = useToast();
 
-  const baseUrl = import.meta.env.VITE_API_URL;
+  const API_BASE_URL = "https://ani-caree.onrender.com";
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["/api/products", selectedCategory],
     queryFn: async () => {
       const url =
-        selectedCategory === "all"
-          ? `${baseUrl}/api/products`
-          : `${baseUrl}/api/products?category=${encodeURIComponent(
-              selectedCategory
-            )}`;
+        selectedCategory !== "all"
+          ? `${API_BASE_URL}/api/products?category=${encodeURIComponent(selectedCategory)}`
+          : `${API_BASE_URL}/api/products`;
+
       const res = await fetch(url);
       if (!res.ok) throw new Error("Failed to fetch products");
       return res.json();
@@ -79,10 +78,7 @@ export default function ProductCatalog() {
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span
-        key={i}
-        className={i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}
-      >
+      <span key={i} className={i < Math.floor(rating) ? "text-yellow-400" : "text-gray-300"}>
         ★
       </span>
     ));
@@ -93,9 +89,7 @@ export default function ProductCatalog() {
       <section id="products" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Recommended Products
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recommended Products</h2>
             <p className="text-xl text-gray-600">Loading products...</p>
           </div>
         </div>
@@ -108,9 +102,7 @@ export default function ProductCatalog() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-12 gap-4">
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Recommended Products
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Recommended Products</h2>
             <p className="text-xl text-gray-600">
               Curated for your pet&apos;s specific needs
             </p>
@@ -153,13 +145,9 @@ export default function ProductCatalog() {
                   </div>
                 </div>
                 <h3 className="font-bold text-lg mb-2">{product.name}</h3>
-                <p className="text-gray-600 text-sm mb-4">
-                  {product.description}
-                </p>
+                <p className="text-gray-600 text-sm mb-4">{product.description}</p>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold text-primary">
-                    ₹{product.price}
-                  </span>
+                  <span className="text-2xl font-bold text-primary">₹{product.price}</span>
                   <Button
                     onClick={() => handleAddToCart(product)}
                     className="bg-primary text-white hover:bg-orange-600 transition-colors"
