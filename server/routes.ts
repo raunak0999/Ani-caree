@@ -1,12 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { 
-  insertPetProfileSchema, 
+import {
+  insertPetProfileSchema,
   insertChatMessageSchema,
   type PetProfile
 } from "@shared/schema";
-import { generateCareRecommendations, generateChatResponse } from "./services/openai";
+import {
+  generateCareRecommendations,
+  generateChatResponse
+} from "./services/openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Pet Profile Routes
@@ -14,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertPetProfileSchema.parse(req.body);
       const petProfile = await storage.createPetProfile(validatedData);
-      
+
       // Generate AI recommendations after creating profile
       try {
         const recommendations = await generateCareRecommendations(
@@ -35,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }),
           storage.createCareRecommendation({
             petProfileId: petProfile.id,
-            category: "grooming", 
+            category: "grooming",
             title: recommendations.grooming.title,
             description: recommendations.grooming.description,
             tips: recommendations.grooming.tips
@@ -50,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ]);
       } catch (aiError) {
         console.error("AI recommendation generation failed:", aiError);
-        // Create fallback recommendations manually
+        // Fallback static recommendations
         await Promise.all([
           storage.createCareRecommendation({
             petProfileId: petProfile.id,
@@ -71,8 +74,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             description: `Regular grooming routine for your ${petProfile.breed}`,
             tips: [
               "Brush regularly to prevent matting and reduce shedding",
-              "Bathe every 4-6 weeks or when dirty",
-              "Trim nails every 2-3 weeks",
+              "Bathe every 4–6 weeks or when dirty",
+              "Trim nails every 2–3 weeks",
               "Clean ears weekly to prevent infections"
             ]
           }),
@@ -119,7 +122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Care Recommendations Routes
+  // Care Recommendations
   app.get("/api/care-recommendations/:petId", async (req, res) => {
     try {
       const petId = parseInt(req.params.petId);
@@ -130,18 +133,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Product Routes
+  // ✅ Product Routes (only one valid definition)
   app.get("/api/products", async (req, res) => {
     try {
       const { category } = req.query;
       let products;
-      
+
       if (category && typeof category === 'string') {
         products = await storage.getProductsByCategory(category);
       } else {
         products = await storage.getAllProducts();
       }
-      
+
       res.json(products);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch products" });
@@ -157,41 +160,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Training Routes
+  // Training Programs
   app.get("/api/training-programs", async (req, res) => {
     try {
       const { age } = req.query;
       let programs;
-      
+
       if (age && typeof age === 'string') {
         programs = await storage.getTrainingProgramsByAge(age);
       } else {
         programs = await storage.getAllTrainingPrograms();
       }
-      
+
       res.json(programs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch training programs" });
     }
   });
 
-  // Chat Routes
+  // Chat
   app.post("/api/chat", async (req, res) => {
     try {
       const { message, sessionId } = req.body;
-      
+
       if (!message || !sessionId) {
         return res.status(400).json({ message: "Message and sessionId are required" });
       }
 
-      // Get pet context if available
       const profiles = await storage.getAllPetProfiles();
-      const petContext = profiles.length > 0 
+      const petContext = profiles.length > 0
         ? `User has pet(s): ${profiles.map(p => `${p.name} (${p.breed}, ${p.age})`).join(', ')}`
         : undefined;
 
       const aiResponse = await generateChatResponse(message, petContext);
-      
+
       const chatMessage = await storage.createChatMessage({
         sessionId,
         message,
