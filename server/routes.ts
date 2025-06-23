@@ -12,14 +12,29 @@ import {
 } from "./services/openai";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Pet Profile Routes
+  // 🐶 Pet Profile Route
   app.post("/api/pet-profiles", async (req, res) => {
     try {
-      const validatedData = insertPetProfileSchema.parse(req.body);
-      const petProfile = await storage.createPetProfile(validatedData);
+      console.log("👉 Incoming pet profile body:", req.body);
 
-      // Generate AI recommendations after creating profile
+      const validatedData = insertPetProfileSchema.parse(req.body);
+      console.log("✅ Validated data:", validatedData);
+
+      // Use real storage if available, or mock it:
+      let petProfile: PetProfile;
+
       try {
+        // Comment this line out if you are testing with mock
+        petProfile = await storage.createPetProfile(validatedData);
+
+        // 👉 Uncomment this to test without DB
+        /*
+        petProfile = {
+          id: Date.now(),
+          ...validatedData,
+        };
+        */
+
         const recommendations = await generateCareRecommendations(
           petProfile.name,
           petProfile.age,
@@ -34,30 +49,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           recommendations,
         });
       } catch (err) {
-        console.error("Recommendation error:", err);
+        console.error("🚨 Recommendation/DB error:", err);
         return res
           .status(500)
-          .json({ message: "Failed to generate recommendations" });
+          .json({ message: "Failed to save profile or generate recommendations" });
       }
     } catch (err) {
-      console.error("Profile creation error:", err);
-      return res.status(400).json({ message: "Invalid pet profile data" });
+      console.error("❌ Profile creation error:", err);
+      return res.status(400).json({
+        message: "Invalid pet profile data",
+        error: err?.message || err,
+      });
     }
   });
 
-  // Chat Message Routes
+  // 💬 Chat Message Route
   app.post("/api/chat", async (req, res) => {
     try {
       const validatedData = insertChatMessageSchema.parse(req.body);
       const reply = await generateChatResponse(validatedData.message);
       return res.json({ reply });
     } catch (err) {
-      console.error("Chat error:", err);
+      console.error("❌ Chat error:", err);
       return res.status(400).json({ message: "Invalid chat message" });
     }
   });
 
-  // ✅ Product Routes
+  // 🛍️ Product Listing Route
   app.get("/api/products", (req, res) => {
     const sampleProducts = [
       {
