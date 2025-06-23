@@ -7,18 +7,28 @@ import type { CareRecommendation } from "@shared/schema";
 export default function CareRecommendations() {
   const { data: profiles, isLoading: profilesLoading } = useQuery({
     queryKey: ['/api/pet-profiles'],
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   const latestProfile = profiles && profiles.length > 0 ? profiles[profiles.length - 1] : null;
 
   const { data: recommendations, isLoading: recommendationsLoading } = useQuery({
     queryKey: ['/api/care-recommendations', latestProfile?.id],
+    queryFn: async () => {
+      if (!latestProfile?.id) return [];
+      const response = await fetch(`/api/care-recommendations/${latestProfile.id}`);
+      if (!response.ok) throw new Error('Failed to fetch recommendations');
+      return response.json();
+    },
     enabled: !!latestProfile?.id,
     refetchOnMount: true,
     staleTime: 0,
   });
 
   const isLoading = profilesLoading || recommendationsLoading;
+
+
 
   const getIcon = (category: string) => {
     switch (category) {
@@ -77,7 +87,10 @@ export default function CareRecommendations() {
     );
   }
 
-  if (!recommendations || recommendations.length === 0) {
+  // Show recommendations if they exist, even if loading
+  const hasRecommendations = recommendations && recommendations.length > 0;
+  
+  if (!hasRecommendations && !isLoading) {
     return (
       <section id="care-tips" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,16 +111,18 @@ export default function CareRecommendations() {
     );
   }
 
-  return (
-    <section id="care-tips" className="py-20 bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
-          <p className="text-xl text-gray-600">AI-powered recommendations based on your pet's profile</p>
-        </div>
-        
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
-          {recommendations.map((recommendation: CareRecommendation) => (
+  // Always show recommendations section if we have data
+  if (hasRecommendations) {
+    return (
+      <section id="care-tips" className="py-20 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
+            <p className="text-xl text-gray-600">AI-powered recommendations based on your pet's profile</p>
+          </div>
+          
+          <div className="grid lg:grid-cols-3 gap-8 mb-12">
+            {recommendations.map((recommendation: CareRecommendation) => (
             <Card key={recommendation.id} className="bg-white card-hover">
               <CardContent className="p-8">
                 <div className={`${getIconColor(recommendation.category)} text-4xl mb-4`}>
@@ -126,6 +141,27 @@ export default function CareRecommendations() {
               </CardContent>
             </Card>
           ))}
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Default "No Pet Profile" state
+  return (
+    <section id="care-tips" className="py-20 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
+          <p className="text-xl text-gray-600">Create a pet profile to get AI-powered recommendations</p>
+        </div>
+        
+        <div className="text-center">
+          <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md mx-auto">
+            <div className="text-6xl mb-4">🐾</div>
+            <h3 className="text-xl font-semibold mb-2">No Pet Profile Yet</h3>
+            <p className="text-gray-600">Create your pet's profile above to receive personalized care recommendations.</p>
+          </div>
         </div>
       </div>
     </section>

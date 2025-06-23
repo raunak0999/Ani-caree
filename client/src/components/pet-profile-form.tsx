@@ -34,7 +34,9 @@ export default function PetProfileForm() {
     },
     onSuccess: () => {
       setFormStatus('success');
+      // Invalidate both profiles and recommendations
       queryClient.invalidateQueries({ queryKey: ['/api/pet-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/care-recommendations'] });
       
       // Scroll to care tips after a short delay
       setTimeout(() => {
@@ -52,7 +54,7 @@ export default function PetProfileForm() {
       
       toast({
         title: "Profile Created!",
-        description: "AI recommendations are being generated...",
+        description: "Personalized recommendations generated!",
       });
     },
     onError: (error) => {
