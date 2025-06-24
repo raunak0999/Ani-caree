@@ -23,40 +23,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertPetProfileSchema.parse(req.body);
       console.log("✅ Validated data:", validatedData);
 
-      let petProfile: PetProfile;
+      let petProfile: PetProfile = {
+        id: Date.now(),
+        ...validatedData,
+      };
+
+      // 🔐 Save to memory
+      lastPetProfile = petProfile;
+
+      const recommendations = await generateCareRecommendations(
+        petProfile.name,
+        petProfile.age,
+        petProfile.breed,
+        petProfile.size || undefined
+      );
 
       try {
-        petProfile = {
-          id: Date.now(),
-          ...validatedData,
-        };
-
-        // 🔐 Save to memory
-        lastPetProfile = petProfile;
-
-        const recommendations = await generateCareRecommendations(
-          petProfile.name,
-          petProfile.age,
-          petProfile.breed,
-          petProfile.size || undefined
-        );
-
-        try {
-          await storage.saveRecommendations(petProfile.id, recommendations);
-        } catch (err) {
-          console.warn("⚠️ Could not save recommendations (likely mock storage):", err.message);
-        }
-
-        return res.json({
-          profile: petProfile,
-          recommendations,
-        });
+        await storage.saveRecommendations(petProfile.id, recommendations);
       } catch (err) {
-        console.error("🚨 Recommendation/DB error:", err);
-        return res
-          .status(500)
-          .json({ message: "Failed to save profile or generate recommendations" });
+        console.warn("⚠️ Could not save recommendations (likely mock storage):", err.message);
       }
+
+      return res.json({
+        profile: petProfile,
+        recommendations,
+      });
     } catch (err) {
       console.error("❌ Profile creation error:", err);
       return res.status(400).json({
@@ -66,7 +57,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // ✅ NEW: Pet Profile Route (GET)
+  // ✅ Pet Profile Route (GET)
   app.get("/api/pet-profiles", async (req, res) => {
     if (!lastPetProfile) {
       return res.status(404).json({ message: "No profile found" });
@@ -105,7 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: "Chicken Biscuits",
         description: "Delicious chicken-flavored treats.",
         price: 299,
-        imageUrl: "https://picsum.photos/seed/biscuits/300/200",
+        imageUrl: "https://images.unsplash.com/photo-1583337130417-3346a1d3a5c6?fit=crop&w=300&h=200&q=80",
         rating: 4.5,
         isRecommended: true,
         isBestseller: false,
@@ -117,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: "Squeaky Toy Bone",
         description: "Fun squeaky toy for your pup.",
         price: 199,
-        imageUrl: "https://picsum.photos/seed/toybone/300/200",
+        imageUrl: "https://images.unsplash.com/photo-1619983081563-430f63602767?fit=crop&w=300&h=200&q=80",
         rating: 4,
         isRecommended: false,
         isBestseller: true,
