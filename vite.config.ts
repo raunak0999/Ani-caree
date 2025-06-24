@@ -1,16 +1,16 @@
 // client/vite.config.ts
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// 👇 Add this block to enable __dirname
+// Fix __dirname in ESM
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// 👇 Convert config to async function
 export default defineConfig(async () => {
   const plugins = [react(), runtimeErrorOverlay()];
 
@@ -34,7 +34,10 @@ export default defineConfig(async () => {
       emptyOutDir: true,
     },
     server: {
-      fs: { strict: true, deny: ["**/.*"] },
+      fs: {
+        strict: true,
+        deny: ["**/.*"],
+      },
     },
   };
 });
