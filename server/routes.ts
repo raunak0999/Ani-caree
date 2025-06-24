@@ -5,6 +5,7 @@ import {
   insertPetProfileSchema,
   insertChatMessageSchema,
   type PetProfile,
+  type CareRecommendationGroup,
 } from "@shared/schema";
 import {
   generateCareRecommendations,
@@ -13,6 +14,7 @@ import {
 
 // 🔥 Store the last profile in memory
 let lastPetProfile: PetProfile | null = null;
+let lastRecommendations: CareRecommendationGroup | null = null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
   console.log("✅ Routes are registering...");
@@ -32,26 +34,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       lastPetProfile = petProfile;
 
-      // 🔁 Use dummy data instead of OpenAI for now
-      let recommendations = [
-        `Feed ${petProfile.name} twice a day.`,
-        `Take ${petProfile.name} for regular walks.`,
-        `Schedule a vet visit every 6 months.`,
-      ];
+      // 🎯 Dummy structured recommendations
+      const recommendations: CareRecommendationGroup = {
+        nutrition: {
+          title: "Basic Nutrition",
+          description: "Feeding and dietary advice for your pet.",
+          tips: [
+            `Feed ${petProfile.name} twice a day with a balanced diet.`,
+            "Avoid table scraps and give clean water regularly.",
+            "Use breed-specific food if possible.",
+          ],
+        },
+        grooming: {
+          title: "Grooming Tips",
+          description: "Keep your pet clean and happy.",
+          tips: [
+            "Brush the coat regularly to reduce shedding.",
+            "Bathe once a month or as needed.",
+            "Trim nails and clean ears periodically.",
+          ],
+        },
+        health: {
+          title: "Health & Wellness",
+          description: "Tips to maintain good health.",
+          tips: [
+            "Schedule vet visits every 6 months.",
+            "Stay updated on vaccinations.",
+            `Watch for changes in ${petProfile.name}'s behavior or eating habits.`,
+          ],
+        },
+      };
 
-      // If you're ready, you can re-enable OpenAI:
-      /*
-      try {
-        recommendations = await generateCareRecommendations(
-          petProfile.name,
-          petProfile.age,
-          petProfile.breed,
-          petProfile.size || undefined
-        );
-      } catch (genErr) {
-        console.error("❌ Failed to generate care tips:", genErr);
-      }
-      */
+      lastRecommendations = recommendations;
 
       try {
         await storage.saveRecommendations(petProfile.id, recommendations);
@@ -74,20 +88,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // ✅ Pet Profile Route (GET)
   app.get("/api/pet-profiles", async (req, res) => {
-    if (!lastPetProfile) {
+    if (!lastPetProfile || !lastRecommendations) {
       return res.status(404).json({ message: "No profile found" });
     }
 
-    // You can later use OpenAI here again
-    const recommendations = [
-      `Feed ${lastPetProfile.name} twice a day.`,
-      `Walk ${lastPetProfile.name} based on its size.`,
-      `Regular grooming for ${lastPetProfile.breed}.`,
-    ];
-
     return res.json({
       profile: lastPetProfile,
-      recommendations,
+      recommendations: lastRecommendations,
     });
   });
 
