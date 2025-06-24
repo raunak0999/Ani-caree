@@ -2,6 +2,8 @@ import { pgTable, text, serial, integer, boolean, real, timestamp } from "drizzl
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// ----------------- TABLE DEFINITIONS ------------------
+
 export const petProfiles = pgTable("pet_profiles", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -53,8 +55,15 @@ export const chatMessages = pgTable("chat_messages", {
   timestamp: timestamp("timestamp").defaultNow(),
 });
 
-// Insert schemas
-export const insertPetProfileSchema = createInsertSchema(petProfiles).omit({
+// ----------------- INSERT SCHEMAS (Zod) ------------------
+
+// ✅ Updated to require non-empty strings for name, age, breed
+export const insertPetProfileSchema = createInsertSchema(petProfiles, {
+  name: z.string().min(1, "Name is required"),
+  age: z.string().min(1, "Age is required"),
+  breed: z.string().min(1, "Breed is required"),
+  size: z.string().optional(),
+}).omit({
   id: true,
   createdAt: true,
 });
@@ -77,7 +86,8 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   timestamp: true,
 });
 
-// Types
+// ----------------- TYPES ------------------
+
 export type PetProfile = typeof petProfiles.$inferSelect;
 export type InsertPetProfile = z.infer<typeof insertPetProfileSchema>;
 
