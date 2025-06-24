@@ -12,7 +12,7 @@ import {
   generateChatResponse,
 } from "./services/openai";
 
-// 🔥 Store the last profile in memory
+// 🔥 Store last profile in memory for context
 let lastPetProfile: PetProfile | null = null;
 let lastRecommendations: CareRecommendationGroup | null = null;
 
@@ -34,36 +34,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       lastPetProfile = petProfile;
 
-      // 🎯 Dummy structured recommendations
-      const recommendations: CareRecommendationGroup = {
-        nutrition: {
-          title: "Basic Nutrition",
-          description: "Feeding and dietary advice for your pet.",
-          tips: [
-            `Feed ${petProfile.name} twice a day with a balanced diet.`,
-            "Avoid table scraps and give clean water regularly.",
-            "Use breed-specific food if possible.",
-          ],
-        },
-        grooming: {
-          title: "Grooming Tips",
-          description: "Keep your pet clean and happy.",
-          tips: [
-            "Brush the coat regularly to reduce shedding.",
-            "Bathe once a month or as needed.",
-            "Trim nails and clean ears periodically.",
-          ],
-        },
-        health: {
-          title: "Health & Wellness",
-          description: "Tips to maintain good health.",
-          tips: [
-            "Schedule vet visits every 6 months.",
-            "Stay updated on vaccinations.",
-            `Watch for changes in ${petProfile.name}'s behavior or eating habits.`,
-          ],
-        },
-      };
+      // Optionally use AI to generate smart recommendations here
+      const recommendations = await generateCareRecommendations(
+        petProfile.name,
+        petProfile.age,
+        petProfile.breed,
+        petProfile.size
+      );
 
       lastRecommendations = recommendations;
 
@@ -98,28 +75,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-// 💬 Chat Message Route
-app.post("/api/chat", async (req, res) => {
-  try {
-    console.log("📩 Incoming chat request:", req.body);
+  // 💬 Chat Message Route (with context + DB save)
+  app.post("/api/chat", async (req, res) => {
+    try {
+      console.log("📩 Incoming chat request:", req.body);
 
-    const validatedData = insertChatMessageSchema.parse(req.body);
-    console.log("✅ Validated chat message:", validatedData);
+      const validatedData = insertChatMessageSchema.parse(req.body);
+      console.log("✅ Validated chat message:", validatedData);
 
-    const reply = await generateChatResponse(validatedData.message);
+      const petContext = lastPetProfile
+        ? `Pet Name: ${lastPetProfile.name}, Age: ${lastPetProfile.age}, Breed: ${lastPetProfile.breed}, Size: ${lastPetProfile.size ?? "N/A"}`
+        : undefined;
 
-    // ✅ Return the correct format expected by frontend
-    return res.json({ response: reply });
-  } catch (err) {
-    console.error("❌ Chat error:", err);
-    return res.status(400).json({
-      message: "Invalid chat message",
-      error: err?.message || err,
-    });
-  }
-});
+      const reply = await generateChatResponse(validatedData.message, petContext);
 
+      // ✅ Save to DB
+      try {
+        await storage.saveChatMessage({
+          sessionId: validatedData.sessionId,
+          message: validatedData.message,
+          response: reply,
+        });
+      } catch (err) {
+        console.warn("⚠️ Could not save chat message:", err.message);
+      }
 
+      return res.json({ response: reply });
+    } catch (err) {
+      console.error("❌ Chat error:", err);
+      return res.status(400).json({
+        message: "Invalid chat message",
+        error: err?.message || err,
+      });
+    }
+  });
 
   // 🛍️ Product Listing Route
   app.get("/api/products", (req, res) => {
