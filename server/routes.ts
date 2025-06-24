@@ -98,17 +98,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
-  // 💬 Chat Message Route
-  app.post("/api/chat", async (req, res) => {
-    try {
-      const validatedData = insertChatMessageSchema.parse(req.body);
-      const reply = await generateChatResponse(validatedData.message);
-      return res.json({ reply });
-    } catch (err) {
-      console.error("❌ Chat error:", err);
-      return res.status(400).json({ message: "Invalid chat message" });
-    }
-  });
+// 💬 Chat Message Route
+app.post("/api/chat", async (req, res) => {
+  try {
+    console.log("📩 Incoming chat request:", req.body); // Log the incoming message
+
+    const validatedData = insertChatMessageSchema.parse(req.body);
+    console.log("✅ Validated chat message:", validatedData); // Log after validation
+
+    // 🔄 Use dummy reply for now
+    const reply = `🐾 This is a dummy AI reply to: "${validatedData.message}"`;
+
+    // ✅ If OpenAI setup works later, uncomment this:
+    // const reply = await generateChatResponse(validatedData.message);
+
+    return res.json({ reply });
+  } catch (err) {
+    console.error("❌ Chat error:", err);
+    return res.status(400).json({
+      message: "Invalid chat message",
+      error: err?.message || err,
+    });
+  }
+});
+
 
   // 🛍️ Product Listing Route
   app.get("/api/products", (req, res) => {
