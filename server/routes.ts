@@ -15,6 +15,8 @@ import {
 let lastPetProfile: PetProfile | null = null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  console.log("✅ Routes are registering...");
+
   // 🐶 Pet Profile Route (POST)
   app.post("/api/pet-profiles", async (req, res) => {
     try {
@@ -23,25 +25,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertPetProfileSchema.parse(req.body);
       console.log("✅ Validated data:", validatedData);
 
-      let petProfile: PetProfile = {
+      const petProfile: PetProfile = {
         id: Date.now(),
         ...validatedData,
       };
 
-      // 🔐 Save to memory
       lastPetProfile = petProfile;
 
-      const recommendations = await generateCareRecommendations(
-        petProfile.name,
-        petProfile.age,
-        petProfile.breed,
-        petProfile.size || undefined
-      );
+      // 🔁 Use dummy data instead of OpenAI for now
+      let recommendations = [
+        `Feed ${petProfile.name} twice a day.`,
+        `Take ${petProfile.name} for regular walks.`,
+        `Schedule a vet visit every 6 months.`,
+      ];
+
+      // If you're ready, you can re-enable OpenAI:
+      /*
+      try {
+        recommendations = await generateCareRecommendations(
+          petProfile.name,
+          petProfile.age,
+          petProfile.breed,
+          petProfile.size || undefined
+        );
+      } catch (genErr) {
+        console.error("❌ Failed to generate care tips:", genErr);
+      }
+      */
 
       try {
         await storage.saveRecommendations(petProfile.id, recommendations);
       } catch (err) {
-        console.warn("⚠️ Could not save recommendations (likely mock storage):", err.message);
+        console.warn("⚠️ Could not save recommendations:", err.message);
       }
 
       return res.json({
@@ -63,12 +78,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(404).json({ message: "No profile found" });
     }
 
-    const recommendations = await generateCareRecommendations(
-      lastPetProfile.name,
-      lastPetProfile.age,
-      lastPetProfile.breed,
-      lastPetProfile.size || undefined
-    );
+    // You can later use OpenAI here again
+    const recommendations = [
+      `Feed ${lastPetProfile.name} twice a day.`,
+      `Walk ${lastPetProfile.name} based on its size.`,
+      `Regular grooming for ${lastPetProfile.breed}.`,
+    ];
 
     return res.json({
       profile: lastPetProfile,
@@ -96,7 +111,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: "Chicken Biscuits",
         description: "Delicious chicken-flavored treats.",
         price: 299,
-        imageUrl: "https://images.unsplash.com/photo-1583337130417-3346a1d3a5c6?fit=crop&w=300&h=200&q=80",
+        imageUrl:
+          "https://images.unsplash.com/photo-1583337130417-3346a1d3a5c6?fit=crop&w=300&h=200&q=80",
         rating: 4.5,
         isRecommended: true,
         isBestseller: false,
@@ -108,7 +124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: "Squeaky Toy Bone",
         description: "Fun squeaky toy for your pup.",
         price: 199,
-        imageUrl: "https://images.unsplash.com/photo-1619983081563-430f63602767?fit=crop&w=300&h=200&q=80",
+        imageUrl:
+          "https://images.unsplash.com/photo-1619983081563-430f63602767?fit=crop&w=300&h=200&q=80",
         rating: 4,
         isRecommended: false,
         isBestseller: true,
