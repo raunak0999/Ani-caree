@@ -4,22 +4,14 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  root: ".", // means root is `client/`
+  root: ".", // You're already inside client/
   plugins: [
     react(),
     runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
-      ? [
-          await import("@replit/vite-plugin-cartographer").then((m) =>
-            m.cartographer()
-          ),
-        ]
-      : []),
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // points to client/src
+      "@": path.resolve(__dirname, "src"),           // For "@/pages/..." etc.
       "@shared": path.resolve(__dirname, "../shared"),
       "@assets": path.resolve(__dirname, "../attached_assets"),
     },
