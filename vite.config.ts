@@ -4,16 +4,16 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  root: ".", // You're already inside client/
+  root: "client", // 👈 Tell Vite to use `client/` as root
   plugins: [
     react(),
     runtimeErrorOverlay(),
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"),           // For "@/pages/..." etc.
-      "@shared": path.resolve(__dirname, "../shared"),
-      "@assets": path.resolve(__dirname, "../attached_assets"),
+      "@": path.resolve(__dirname, "client", "src"),
+      "@shared": path.resolve(__dirname, "shared"),
+      "@assets": path.resolve(__dirname, "attached_assets"),
     },
   },
   build: {
