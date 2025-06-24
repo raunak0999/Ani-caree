@@ -15,7 +15,7 @@ import {
 let lastPetProfile: PetProfile | null = null;
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // 🐶 Pet Profile Route
+  // 🐶 Pet Profile Route (POST)
   app.post("/api/pet-profiles", async (req, res) => {
     try {
       console.log("👉 Incoming pet profile body:", req.body);
@@ -66,13 +66,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 🆕 👇 GET route to return the last profile
-  app.get("/api/profile", (req, res) => {
+  // ✅ NEW: Pet Profile Route (GET)
+  app.get("/api/pet-profiles", async (req, res) => {
     if (!lastPetProfile) {
       return res.status(404).json({ message: "No profile found" });
     }
 
-    return res.json(lastPetProfile);
+    const recommendations = await generateCareRecommendations(
+      lastPetProfile.name,
+      lastPetProfile.age,
+      lastPetProfile.breed,
+      lastPetProfile.size || undefined
+    );
+
+    return res.json({
+      profile: lastPetProfile,
+      recommendations,
+    });
   });
 
   // 💬 Chat Message Route
