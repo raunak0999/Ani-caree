@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User, Mic, MicOff } from "lucide-react";
+import { Send, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatMessageType } from "@/lib/types";
@@ -23,9 +22,7 @@ export default function AiChat() {
   const [sessionId] = useState(() => `session_${Date.now()}`);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
-  // 🐶 Get pet profile context
   const { data: petData } = useQuery({
     queryKey: ["pet-profile"],
     queryFn: async () => {
@@ -83,8 +80,8 @@ export default function AiChat() {
   });
 
   const handleSendMessage = () => {
-    const finalMessage = transcript || inputMessage;
-    if (!finalMessage.trim()) return;
+    const finalMessage = inputMessage.trim();
+    if (!finalMessage) return;
 
     const userMessage: ChatMessageType = {
       id: Date.now().toString(),
@@ -96,7 +93,6 @@ export default function AiChat() {
     setMessages(prev => [...prev, userMessage]);
     sendMessageMutation.mutate(finalMessage);
     setInputMessage("");
-    resetTranscript();
   };
 
   const quickSuggestions = [
@@ -143,76 +139,3 @@ export default function AiChat() {
               <div key={message.id} className={`flex items-start space-x-3 ${message.isUser ? 'justify-end' : ''}`}>
                 {!message.isUser && (
                   <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm flex-shrink-0">
-                    <Bot className="w-4 h-4" />
-                  </div>
-                )}
-                <div className={`rounded-lg p-3 max-w-sm ${message.isUser ? 'bg-primary text-white' : 'bg-gray-100 text-gray-800'}`}>
-                  <p>{message.text}</p>
-                </div>
-                {message.isUser && (
-                  <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm flex-shrink-0">
-                    <User className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {sendMessageMutation.isPending && (
-              <div className="flex items-start space-x-3">
-                <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="bg-gray-100 rounded-lg p-3 max-w-sm">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          <div className="border-t p-6">
-            <div className="flex space-x-3 mb-4">
-              <Input
-                value={inputMessage || transcript}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Ask me about nutrition, training, health, or products..."
-                className="flex-1"
-                disabled={sendMessageMutation.isPending}
-              />
-              <Button onClick={handleSendMessage} disabled={!inputMessage.trim() && !transcript.trim() || sendMessageMutation.isPending}>
-                <Send className="w-4 h-4" />
-              </Button>
-              {browserSupportsSpeechRecognition && (
-                <Button
-                  variant="ghost"
-                  onClick={() => listening ? SpeechRecognition.stopListening() : SpeechRecognition.startListening({ continuous: false })}
-                >
-                  {listening ? <MicOff className="w-4 h-4 text-red-500" /> : <Mic className="w-4 h-4" />}
-                </Button>
-              )}
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {quickSuggestions.map((suggestion, index) => (
-                <Badge
-                  key={index}
-                  variant="secondary"
-                  className="cursor-pointer hover:bg-gray-200 transition-colors"
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </Card>
-      </div>
-    </section>
-  );
-}
