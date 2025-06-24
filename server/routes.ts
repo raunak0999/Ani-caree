@@ -20,20 +20,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertPetProfileSchema.parse(req.body);
       console.log("✅ Validated data:", validatedData);
 
-      // Use real storage if available, or mock it:
+      // Use mock pet profile for now
       let petProfile: PetProfile;
 
       try {
-        // Comment this line out if you are testing with mock
-        petProfile = await storage.createPetProfile(validatedData);
+        // ❌ Commented out real DB call
+        // petProfile = await storage.createPetProfile(validatedData);
 
-        // 👉 Uncomment this to test without DB
-        /*
+        // ✅ Use mock profile instead (no DB required)
         petProfile = {
           id: Date.now(),
           ...validatedData,
         };
-        */
 
         const recommendations = await generateCareRecommendations(
           petProfile.name,
@@ -42,7 +40,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           petProfile.size || undefined
         );
 
-        await storage.saveRecommendations(petProfile.id, recommendations);
+        // Save mock recommendations if needed
+        try {
+          await storage.saveRecommendations(petProfile.id, recommendations);
+        } catch (err) {
+          console.warn("⚠️ Could not save recommendations (likely mock storage):", err.message);
+        }
 
         return res.json({
           profile: petProfile,
