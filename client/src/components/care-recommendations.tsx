@@ -18,7 +18,13 @@ export default function CareRecommendations() {
 
   const profile = data?.profile;
   const recommendations: CareRecommendationGroup | undefined = data?.recommendations;
-  const recommendationEntries = recommendations ? Object.entries(recommendations) : [];
+
+  const recommendationEntries =
+    recommendations && typeof recommendations === "object"
+      ? Object.entries(recommendations).filter(
+          ([_, val]) => val && val.title && val.tips
+        )
+      : [];
 
   const getIcon = (category: string) => {
     switch (category) {
@@ -51,8 +57,12 @@ export default function CareRecommendations() {
       <section id="care-tips" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
-            <p className="text-xl text-gray-600">AI-powered recommendations based on your pet's profile</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Personalized Care Tips
+            </h2>
+            <p className="text-xl text-gray-600">
+              AI-powered recommendations based on your pet's profile
+            </p>
           </div>
           <div className="grid lg:grid-cols-3 gap-8">
             {[1, 2, 3].map((i) => (
@@ -81,8 +91,12 @@ export default function CareRecommendations() {
       <section id="care-tips" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
-            <p className="text-xl text-gray-600">Create a pet profile to get AI-powered recommendations</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Personalized Care Tips
+            </h2>
+            <p className="text-xl text-gray-600">
+              Create a pet profile to get AI-powered recommendations
+            </p>
           </div>
           <div className="text-center">
             <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md mx-auto">
@@ -102,7 +116,9 @@ export default function CareRecommendations() {
     <section id="care-tips" className="py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Care Recommendations for {profile.name}</h2>
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+            Care Recommendations for {profile.name}
+          </h2>
           <p className="text-xl text-gray-600">
             AI-powered tips tailored for your {profile.age} {profile.breed}
           </p>
