@@ -3,16 +3,20 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import viteTsconfigPaths from "vite-tsconfig-paths"; // ✅ import this
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-// Fix __dirname in ESM
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig(async () => {
-  const plugins = [react(), runtimeErrorOverlay()];
+  const plugins = [
+    react(),
+    viteTsconfigPaths(), // ✅ add this here
+    runtimeErrorOverlay()
+  ];
 
   if (process.env.NODE_ENV !== "production" && process.env.REPL_ID) {
     const { cartographer } = await import("@replit/vite-plugin-cartographer");
