@@ -101,18 +101,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 // 💬 Chat Message Route
 app.post("/api/chat", async (req, res) => {
   try {
-    console.log("📩 Incoming chat request:", req.body); // Log the incoming message
+    console.log("📩 Incoming chat request:", req.body); // log input
 
     const validatedData = insertChatMessageSchema.parse(req.body);
-    console.log("✅ Validated chat message:", validatedData); // Log after validation
+    console.log("✅ Validated chat message:", validatedData);
 
-    // 🔄 Use dummy reply for now
-    const reply = `🐾 This is a dummy AI reply to: "${validatedData.message}"`;
+    // 🧠 Use OpenAI to generate real response
+    const reply = await generateChatResponse(validatedData.message);
+    console.log("🤖 AI reply:", reply);
 
-    // ✅ If OpenAI setup works later, uncomment this:
-    // const reply = await generateChatResponse(validatedData.message);
-
-    return res.json({ reply });
+    return res.json({ response: reply }); // 🧠 return actual ChatGPT response
   } catch (err) {
     console.error("❌ Chat error:", err);
     return res.status(400).json({
