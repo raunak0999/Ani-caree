@@ -4,6 +4,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
+  root: ".", // means root is `client/`
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -18,10 +19,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src"), // 👈 Correct path if `vite.config.ts` is inside client/
+      "@": path.resolve(__dirname, "src"), // points to client/src
+      "@shared": path.resolve(__dirname, "../shared"),
+      "@assets": path.resolve(__dirname, "../attached_assets"),
     },
   },
-  root: ".", // 👈 Change this to current folder if config is inside `client/`
   build: {
     outDir: "dist/public",
     emptyOutDir: true,
