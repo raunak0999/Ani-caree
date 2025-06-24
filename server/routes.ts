@@ -101,16 +101,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 // 💬 Chat Message Route
 app.post("/api/chat", async (req, res) => {
   try {
-    console.log("📩 Incoming chat request:", req.body); // log input
+    console.log("📩 Incoming chat request:", req.body);
 
     const validatedData = insertChatMessageSchema.parse(req.body);
     console.log("✅ Validated chat message:", validatedData);
 
-    // 🧠 Use OpenAI to generate real response
     const reply = await generateChatResponse(validatedData.message);
-    console.log("🤖 AI reply:", reply);
 
-    return res.json({ response: reply }); // 🧠 return actual ChatGPT response
+    // ✅ Return the correct format expected by frontend
+    return res.json({ response: reply });
   } catch (err) {
     console.error("❌ Chat error:", err);
     return res.status(400).json({
@@ -119,6 +118,7 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 });
+
 
 
   // 🛍️ Product Listing Route
