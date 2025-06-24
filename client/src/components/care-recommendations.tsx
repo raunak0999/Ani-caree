@@ -5,11 +5,14 @@ import { Utensils, Scissors, Heart } from "lucide-react";
 import type { CareRecommendationGroup } from "@shared/schema";
 
 export default function CareRecommendations() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["/api/pet-profiles"],
     queryFn: async () => {
       const res = await fetch("/api/pet-profiles");
-      if (!res.ok) throw new Error("Failed to fetch profile");
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.message || "Failed to fetch profile");
+      }
       return res.json();
     },
     staleTime: 0,
@@ -75,13 +78,15 @@ export default function CareRecommendations() {
     );
   }
 
-  if (!profile || !recommendations) {
+  if (isError || !profile || !recommendations || Object.keys(recommendations).length === 0) {
     return (
       <section id="care-tips" className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Personalized Care Tips</h2>
-            <p className="text-xl text-gray-600">Create a pet profile to get AI-powered recommendations</p>
+            <p className="text-xl text-gray-600">
+              {isError ? (error as Error).message : "Create a pet profile to get AI-powered recommendations"}
+            </p>
           </div>
           <div className="text-center">
             <div className="bg-white rounded-2xl p-12 shadow-lg max-w-md mx-auto">
@@ -118,7 +123,7 @@ export default function CareRecommendations() {
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">{data.title}</h3>
                 <p className="text-gray-600 mb-6">{data.description}</p>
                 <ul className="space-y-2 text-gray-700">
-                  {data.tips.map((tip: string, index: number) => (
+                  {(data?.tips || []).map((tip: string, index: number) => (
                     <li key={index}>• {tip}</li>
                   ))}
                 </ul>
