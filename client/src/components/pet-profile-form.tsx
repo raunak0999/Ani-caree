@@ -17,10 +17,13 @@ import {
 } from "@/components/ui/select";
 import { Heart, CheckCircle, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+// ✅ FIXED: Corrected import path
 import {
   insertPetProfileSchema,
   type InsertPetProfile,
-} from "@shared/schema";
+} from "../../../shared/schema";
+
 import { apiRequest } from "@/lib/queryClient";
 
 export default function PetProfileForm() {
